@@ -1,0 +1,7 @@
+
+Dependancies: twisted, anu recent version
+
+To run: twistd -ny server.py
+
+To test: while server is runinng, run "python test.py"
+
