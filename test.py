@@ -26,11 +26,12 @@ if __name__ == '__main__':
 
     s.quit()
 
-    m = imaplib.IMAP4('localhost', 2143)
+    m = imaplib.IMAP4_SSL('localhost', 2143)
     m.login("test@example.com", "xxx")
     m.select()
 
-    typ, data = m.search(None, 'TO', 'test@example.com')
+    status, data = m.search(None, 'TO', 'test@example.com')
+    assert status == 'OK'
     assert data[0], "Failed to get messages!"
 
     msgs = data[0].split()
@@ -42,8 +43,9 @@ if __name__ == '__main__':
         m.store(num, '+FLAGS', r'\Deleted')
     m.expunge()
 
-    typ, data = m.search(None, 'ALL')
+    status, data = m.search(None, 'ALL')
     assert data[0], "Should have messages"
+    assert status == 'OK'
     msgs = data[0].split()
     assert len(msgs) == 2
 
