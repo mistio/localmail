@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     s.quit()
 
-    m = imaplib.IMAP4_SSL('localhost', 2143)
+    m = imaplib.IMAP4('localhost', 2143)
     m.login("test@example.com", "xxx")
     m.select()
 

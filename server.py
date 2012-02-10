@@ -8,13 +8,13 @@ from imap import MailUserRealm, CredentialsChecker, IMAPFactory
 
 application = service.Application("Testing Email Server")
 
-context = ssl.DefaultOpenSSLContextFactory('server.key', 'server.crt')
+#context = ssl.DefaultOpenSSLContextFactory('server.key', 'server.crt')
 portal = portal.Portal(MailUserRealm())
 checker = CredentialsChecker()
 portal.registerChecker(checker)
 imapServerFactory = IMAPFactory()
 imapServerFactory.portal = portal
-imapServerService = internet.SSLServer(2143, imapServerFactory, context)
+imapServerService = internet.TCPServer(2143, imapServerFactory)
 imapServerService.setServiceParent(application)
 
 smtpServerFactory = TestServerESMTPFactory()
