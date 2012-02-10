@@ -22,6 +22,7 @@ class IMAPUserAccount(object):
 
     def __init__(self, user):
         self.inbox = get_inbox(user)
+        self.user = user
 
     def listMailboxes(self, ref, wildcard):
         "only support one folder"
@@ -75,11 +76,16 @@ class Message(object):
         return self.date
 
     def getHeaders(self, negate, *names):
-        names = set(names)
+        headers = {}
         if negate:
-            return dict(i for i in self.msg.items() if i[0] not in names)
+            for header in self.msg.keys():
+                if header.upper() not in names:
+                    headers[header.lower()] = self.msg.get(header, '')
         else:
-            return dict(i for i in self.msg.items() if i[0] in names)
+            for name in names:
+                headers[name.lower()] = self.msg.get(name, '')
+        return headers
+
 
     def getBodyFile(self):
         return StringIO(self.payload)
@@ -138,7 +144,7 @@ class MemoryIMAPMailbox(object):
             messages = self._get_msgs_by_uid(msg_set)
         else:
             messages = self._get_msgs_by_seq(msg_set)
-        print messages
+        print [m.data for m in messages.values()]
         return messages.items()
 
     def addListener(self, listener):
@@ -162,13 +168,11 @@ class MemoryIMAPMailbox(object):
                     if m.uid in msg_set)
 
     def _get_msgs_by_seq(self, msg_set):
-        print "SEQ", msg_set
         l = len(self.msgs)
         if not msg_set.last:
             msg_set.last = l
         d = dict()
         for i in msg_set:
-            print i
             x = i - 1
             if -1 < x < l:
                 d[i] = self.msgs[x]
@@ -192,6 +196,7 @@ class MemoryIMAPMailbox(object):
                     elif mode == -1 and flag in msg.flags:
                         msg.flags.remove(flag)
             setFlags[seq] = msg.flags
+        print setFlags
         return setFlags
 
     def expunge(self):
@@ -199,7 +204,7 @@ class MemoryIMAPMailbox(object):
         remove = []
         for i, msg in enumerate(self.msgs[:]):
             if r"\Deleted" in msg.flags:
-                self.msgs.pop(i)
+                self.msgs.remove(msg)
                 remove.append(msg.uid)
         return remove
 

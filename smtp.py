@@ -33,9 +33,10 @@ class MemoryDelivery(object):
     implements(smtp.IMessageDelivery)
 
     def validateTo(self, user):
-        return lambda: MemoryMessage(str(user))
+        return lambda: MemoryMessage(str(self.from_))
 
     def validateFrom(self, helo, origin):
+        self.from_ = origin
         return origin
 
     def receivedHeader(self, helo, origin, recipients):

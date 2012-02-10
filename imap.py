@@ -1,12 +1,8 @@
-import random
-import email
-from itertools import count
-from cStringIO import StringIO
 
 from zope.interface import implements
 
 from twisted.mail import imap4
-from twisted.internet import reactor, defer, protocol
+from twisted.internet import defer, protocol
 from twisted.cred import portal, checkers, credentials
 
 from inbox import IMAPUserAccount
