@@ -33,10 +33,13 @@ class MemoryDelivery(object):
     implements(smtp.IMessageDelivery)
 
     def validateTo(self, user):
-        return lambda: MemoryMessage(str(self.from_))
+        email = str(user)
+        if '+' in email:
+            name, domain = email.split('@')
+            email = email.split('+')[0] + '@' + domain
+        return lambda: MemoryMessage(email)
 
     def validateFrom(self, helo, origin):
-        self.from_ = origin
         return origin
 
     def receivedHeader(self, helo, origin, recipients):

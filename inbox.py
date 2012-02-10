@@ -140,6 +140,7 @@ class MemoryIMAPMailbox(object):
         return MSG_COUNTER.next()
 
     def fetch(self, msg_set, uid):
+        print INBOXES
         if uid:
             messages = self._get_msgs_by_uid(msg_set)
         else:

@@ -19,10 +19,10 @@ if __name__ == '__main__':
         msg['To'] = to
         s.sendmail(from_, [to], msg.as_string())
 
-    send('test@example.com', 'test@example.com', "test", "test\n"*5)
-    send('test@example.com', 'test@example.com', "test2", "test2\n"*5)
-    send('test@example.com', 'test2@example.com', "test3", "test3\n"*5)
-    send('test@example.com', 'test2@example.com', "test4", "test4\n"*5)
+    send('test@example.com', 'test+2@example.com', "test", "test\n"*5)
+    send('test@example.com', 'test+2@example.com', "test2", "test2\n"*5)
+    send('test@example.com', 'test2+2@example.com', "test3", "test3\n"*5)
+    send('test@example.com', 'test2+2@example.com', "test4", "test4\n"*5)
 
     s.quit()
 
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     m.login("test@example.com", "xxx")
     m.select()
 
-    status, data = m.search(None, 'TO', 'test@example.com')
+    status, data = m.search(None, 'TO', 'test+2@example.com')
     assert status == 'OK'
     assert data[0], "Failed to get messages!"
 
@@ -44,10 +44,7 @@ if __name__ == '__main__':
     m.expunge()
 
     status, data = m.search(None, 'ALL')
-    assert data[0], "Should have messages"
-    assert status == 'OK'
-    msgs = data[0].split()
-    assert len(msgs) == 2
+    assert not data[0], "Should have no messages"
 
     m.close()
     m.logout()
