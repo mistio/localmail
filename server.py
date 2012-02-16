@@ -1,22 +1,26 @@
 from twisted.application import service
 from twisted.application import internet
-from twisted.cred import portal
-from twisted.internet import ssl
+from twisted.cred import portal, checkers
 
 from smtp import TestServerESMTPFactory
-from imap import MailUserRealm, CredentialsChecker, IMAPFactory
+from imap import TestServerIMAPFactory
+from cred import TestServerRealm, CredentialsNonChecker
+
 
 application = service.Application("Testing Email Server")
 
-#context = ssl.DefaultOpenSSLContextFactory('server.key', 'server.crt')
-portal = portal.Portal(MailUserRealm())
-checker = CredentialsChecker()
-portal.registerChecker(checker)
-imapServerFactory = IMAPFactory()
+# setup auth
+portal = portal.Portal(TestServerRealm())
+portal.registerChecker(CredentialsNonChecker())
+portal.registerChecker(checkers.AllowAnonymousAccess())
+
+imapServerFactory = TestServerIMAPFactory()
 imapServerFactory.portal = portal
+smtpServerFactory = TestServerESMTPFactory(portal)
+
+#context = ssl.DefaultOpenSSLContextFactory('keys/server.key', 'keys/server.crt')
 imapServerService = internet.TCPServer(2143, imapServerFactory)
 imapServerService.setServiceParent(application)
 
-smtpServerFactory = TestServerESMTPFactory()
 smtpServerService = internet.TCPServer(2025, smtpServerFactory)
 smtpServerService.setServiceParent(application)

@@ -1,38 +1,41 @@
-
 from zope.interface import implements
-
 from twisted.mail import imap4
-from twisted.internet import defer, protocol
-from twisted.cred import portal, checkers, credentials
+from twisted.internet import protocol
 
-from inbox import IMAPUserAccount
+from inbox import INBOX
 
+class IMAPUserAccount(object):
+    implements(imap4.IAccount)
 
-class MailUserRealm(object):
-    implements(portal.IRealm)
-    avatarInterfaces = {
-        imap4.IAccount: IMAPUserAccount,
-        }
+    def listMailboxes(self, ref, wildcard):
+        "only support one folder"
+        return [("INBOX", INBOX)]
 
-    def requestAvatar(self, avatarId, mind, *interfaces):
-        for requestedInterface in interfaces:
-            if self.avatarInterfaces.has_key(requestedInterface):
-                avatarClass = self.avatarInterfaces[requestedInterface]
-                avatar = avatarClass(avatarId)
-                # null logout function: take no arguments and do nothing
-                logout = lambda: None
-                return defer.succeed((requestedInterface, avatar, logout))
+    def select(self, path, rw=True):
+        "return the same mailbox for every path"
+        return INBOX
 
-        # none of the requested interfaces was supported
-        raise KeyError("None of the requested interfaces is supported")
+    def create(self, path):
+        "nothing to create"
+        pass
 
-class CredentialsChecker(object):
-    implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.IUsernamePassword,
-                            credentials.IUsernameHashedPassword)
+    def delete(self, path):
+        "delete the mailbox at path"
+        raise imap4.MailboxException("Permission denied.")
 
-    def requestAvatarId(self, credentials):
-        return credentials.username
+    def rename(self, oldname, newname):
+        "rename a mailbox"
+        pass
+
+    def isSubscribed(self, path):
+        "return a true value if user is subscribed to the mailbox"
+        return True
+
+    def subscribe(self, path):
+        return True
+
+    def unsubscribe(self, path):
+        return True
 
 
 class IMAPServerProtocol(imap4.IMAP4Server):
@@ -49,13 +52,15 @@ class IMAPServerProtocol(imap4.IMAP4Server):
         if self.debug:
             print "SERVER:", line
 
-class IMAPFactory(protocol.Factory):
+
+class TestServerIMAPFactory(protocol.Factory):
     protocol = IMAPServerProtocol
     portal = None # placeholder
 
     def buildProtocol(self, address):
         p = self.protocol()
-        p.portal = self.portal
+        # self.portal will be set up already "magically"
+        p.portal = self.portal 
         p.factory = self
         return p
 

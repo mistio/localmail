@@ -7,95 +7,13 @@ from zope.interface import implements
 
 from twisted.mail import imap4
 
-MAILBOXDELIMITER = "."
 MSG_COUNTER = count()
-MSG_COUNTER.next()
+LAST = MSG_COUNTER.next()
 
-
-class IMAPUserAccount(object):
-    implements(imap4.IAccount)
-
-    def __init__(self, user):
-        self.inbox = get_inbox(user)
-        self.user = user
-
-    def listMailboxes(self, ref, wildcard):
-        "only support one folder"
-        return [("INBOX", self.inbox)]
-
-    def select(self, path, rw=True):
-        "return the same mailbox for every path"
-        return self.inbox
-
-    def create(self, path):
-        "nothing to create"
-        pass
-
-    def delete(self, path):
-        "delete the mailbox at path"
-        raise imap4.MailboxException("Permission denied.")
-
-    def rename(self, oldname, newname):
-        "rename a mailbox"
-        pass
-
-    def isSubscribed(self, path):
-        "return a true value if user is subscribed to the mailbox"
-        return True
-
-    def subscribe(self, path):
-        return True
-
-    def unsubscribe(self, path):
-        return True
-
-
-
-class Message(object):
-    implements(imap4.IMessage)
-    def __init__(self, fp, flags, date):
-        self.msg = email.message_from_file(fp)
-        self.data = str(self.msg)
-        self.uid = MSG_COUNTER.next()
-        self.flags = set(flags)
-        self.date = date
-        self.payload = self.msg.get_payload()
-
-    def getUID(self):
-        return self.uid
-
-    def getFlags(self):
-        return self.flags
-
-    def getInternalDate(self):
-        return self.date
-
-    def getHeaders(self, negate, *names):
-        headers = {}
-        if negate:
-            for header in self.msg.keys():
-                if header.upper() not in names:
-                    headers[header.lower()] = self.msg.get(header, '')
-        else:
-            for name in names:
-                headers[name.lower()] = self.msg.get(name, '')
-        return headers
-
-
-    def getBodyFile(self):
-        return StringIO(self.payload)
-
-    def getSize(self):
-        return len(self.data)
-
-    def isMultipart(self):
-        return False
-
-    def getSubPart(self, part):
-        if part == 0:
-            return self.payload
-        raise IndexError
-
+def get_counter():
+    global LAST
+    LAST = MSG_COUNTER.next()
+    return LAST
 
 class MemoryIMAPMailbox(object):
     implements(imap4.IMailbox)
@@ -106,7 +24,7 @@ class MemoryIMAPMailbox(object):
         self.uidvalidity = random.randint(1000000, 9999999)
 
     def getHierarchicalDelimiter(self):
-        return MAILBOXDELIMITER
+        return "."
 
     def getFlags(self):
         "return list of flags supported by this mailbox"
@@ -132,7 +50,7 @@ class MemoryIMAPMailbox(object):
         return self.msgs[messageNum-1].uid
 
     def getUIDNext(self):
-        return MSG_COUNTER.next()
+        return LAST + 1
 
     def fetch(self, msg_set, uid):
         if uid:
@@ -179,7 +97,6 @@ class MemoryIMAPMailbox(object):
             messages = self._get_msgs_by_seq(msg_set)
         setFlags = {}
         for seq, msg in messages.items():
-            uid = self.getUID(seq)
             if mode == 0: # replace flags
                 msg.flags = set(flags)
             else:
@@ -207,5 +124,49 @@ class MemoryIMAPMailbox(object):
 
 
 INBOX = MemoryIMAPMailbox()
-def get_inbox(email):
-    return INBOX
+
+class Message(object):
+    implements(imap4.IMessage)
+    def __init__(self, fp, flags, date):
+        self.msg = email.message_from_file(fp)
+        self.data = str(self.msg)
+        self.uid = get_counter()
+        self.flags = set(flags)
+        self.date = date
+        self.payload = self.msg.get_payload()
+
+    def getUID(self):
+        return self.uid
+
+    def getFlags(self):
+        return self.flags
+
+    def getInternalDate(self):
+        return self.date
+
+    def getHeaders(self, negate, *names):
+        headers = {}
+        if negate:
+            for header in self.msg.keys():
+                if header.upper() not in names:
+                    headers[header.lower()] = self.msg.get(header, '')
+        else:
+            for name in names:
+                headers[name.lower()] = self.msg.get(name, '')
+        return headers
+
+
+    def getBodyFile(self):
+        return StringIO(self.payload)
+
+    def getSize(self):
+        return len(self.data)
+
+    def isMultipart(self):
+        return False
+
+    def getSubPart(self, part):
+        if part == 0:
+            return self.payload
+        raise IndexError
+

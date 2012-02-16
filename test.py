@@ -12,6 +12,7 @@ def print_msgs(imap, msgs):
 if __name__ == '__main__':
     s = smtplib.SMTP('localhost', 2025)
     s.set_debuglevel(1)
+    s.login('any', 'thing')
     def send(from_, to, subject, body):
         msg = MIMEText(body)
         msg['Subject'] = subject

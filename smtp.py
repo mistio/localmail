@@ -1,19 +1,18 @@
 from cStringIO import StringIO
 
 from zope.interface import implements
-
-from twisted.python import log
-from twisted.internet import protocol, defer
+from twisted.internet import defer
+from twisted.mail.imap4 import LOGINCredentials, PLAINCredentials
 from twisted.mail import smtp
 
-from inbox import get_inbox
+from inbox import INBOX
+
 
 class MemoryMessage(object):
-    """Reads a message into a StringIO"""
+    """Reads a message into a StringIO, and passes on to IMAP inbox"""
     implements(smtp.IMessage)
 
-    def __init__(self, user):
-        self.inbox = get_inbox(user)
+    def __init__(self):
         self.file = StringIO()
 
     def lineReceived(self, line):
@@ -21,22 +20,19 @@ class MemoryMessage(object):
 
     def eomReceived(self):
         self.file.seek(0)
-        self.inbox.addMessage(self.file)#, [r'\Recent', r'\Unseen'])
+        INBOX.addMessage(self.file, [r'\Recent', r'\Unseen'])
         self.file.close()
         return defer.succeed(None)
 
     def connectionLost(self):
         self.file.close()
 
+
 class MemoryDelivery(object):
     implements(smtp.IMessageDelivery)
 
     def validateTo(self, user):
-        email = str(user)
-        if '+' in email:
-            name, domain = email.split('@')
-            email = email.split('+')[0] + '@' + domain
-        return lambda: MemoryMessage(email)
+        return MemoryMessage
 
     def validateFrom(self, helo, origin):
         return origin
@@ -44,18 +40,16 @@ class MemoryDelivery(object):
     def receivedHeader(self, helo, origin, recipients):
         return 'Received: Test Server.'
 
-class TestServerDeliveryFactory(object):
-    implements(smtp.IMessageDeliveryFactory)
 
-    def getMessageDelivery(self):
-        return MemoryDelivery()
-
-class TestServerESMTPFactory(protocol.ServerFactory):
+class TestServerESMTPFactory(smtp.SMTPFactory):
     protocol = smtp.ESMTP
+    challengers = {
+        "LOGIN": LOGINCredentials,
+        "PLAIN": PLAINCredentials
+    }
 
     def buildProtocol(self, addr):
-        p = self.protocol()
-        p.deliveryFactory = TestServerDeliveryFactory()
-        p.factory = self
+        p = smtp.SMTPFactory.buildProtocol(self, addr)
+        p.challengers = self.challengers
         return p
 
