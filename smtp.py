@@ -17,7 +17,6 @@ class MemoryMessage(object):
         self.file = StringIO()
 
     def lineReceived(self, line):
-        log.msg("recv: " + line)
         self.file.write(line + '\n')
 
     def eomReceived(self):

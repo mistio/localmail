@@ -8,14 +8,9 @@ from zope.interface import implements
 from twisted.mail import imap4
 
 MAILBOXDELIMITER = "."
-INBOXES = dict()
 MSG_COUNTER = count()
 MSG_COUNTER.next()
 
-def get_inbox(email):
-    if email not in INBOXES:
-        INBOXES[email] = MemoryIMAPMailbox()
-    return INBOXES[email]
 
 class IMAPUserAccount(object):
     implements(imap4.IAccount)
@@ -140,12 +135,10 @@ class MemoryIMAPMailbox(object):
         return MSG_COUNTER.next()
 
     def fetch(self, msg_set, uid):
-        print INBOXES
         if uid:
             messages = self._get_msgs_by_uid(msg_set)
         else:
             messages = self._get_msgs_by_seq(msg_set)
-        print [m.data for m in messages.values()]
         return messages.items()
 
     def addListener(self, listener):
@@ -197,7 +190,6 @@ class MemoryIMAPMailbox(object):
                     elif mode == -1 and flag in msg.flags:
                         msg.flags.remove(flag)
             setFlags[seq] = msg.flags
-        print setFlags
         return setFlags
 
     def expunge(self):
@@ -214,3 +206,6 @@ class MemoryIMAPMailbox(object):
         raise imap4.MailboxException("Permission denied.")
 
 
+INBOX = MemoryIMAPMailbox()
+def get_inbox(email):
+    return INBOX
