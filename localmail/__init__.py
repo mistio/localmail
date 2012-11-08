@@ -25,9 +25,8 @@ def get_services(smtp_port, imap_port):
     return smtp, imap
 
 
-def run(smtp_port, imap_port):
-    import reactor
-    reactor.install()
+def run(smtp_port=2025, imap_port=2143):
+    from twisted.internet import reactor
     auth = get_portal()
 
     smtpServerFactory = TestServerESMTPFactory(auth)
@@ -35,6 +34,6 @@ def run(smtp_port, imap_port):
 
     imapServerFactory = TestServerIMAPFactory()
     imapServerFactory.portal = auth
-    reactor.listenTCP(imap_port, imapServerFactory())
+    reactor.listenTCP(imap_port, imapServerFactory)
 
     reactor.run()
