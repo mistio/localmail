@@ -4,9 +4,7 @@ from twisted.application import service
 from twisted import plugin
 from twisted.python import usage
 
-from cred import setup_portal
-from imap import setup_imap_server
-from smtp import setup_smtp_server
+import localmail
 
 
 class Options(usage.Options):
@@ -19,18 +17,19 @@ class Options(usage.Options):
 class LocalmailServiceMaker(object):
     implements(service.IServiceMaker, plugin.IPlugin)
     tapname = "localmail"
-    description = "Run localmail"
+    description = "A test SMTP/IMAP server"
     options = Options
 
     def makeService(self, options):
-        localmail = service.MultiService()
-        localmail.setName("localmail")
-        auth = setup_portal()
-        imap = setup_imap_server(int(options['imap']), auth)
-        imap.setServiceParent(localmail)
-        smtp = setup_smtp_server(int(options['smtp']), auth)
-        smtp.setServiceParent(localmail)
-        return localmail
+        svc = service.MultiService()
+        svc.setName("localmail")
+        smtp, imap = localmail.get_services(
+            int(options['smtp']),
+            int(options['imap'])
+        )
+        imap.setServiceParent(svc)
+        smtp.setServiceParent(svc)
+        return svc
 
 
 # The name of this variable is irrelevant, as long as there is *some*

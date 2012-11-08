@@ -35,10 +35,3 @@ class CredentialsNonChecker(object):
     def requestAvatarId(self, credentials):
         """automatically validate *any* user"""
         return credentials.username
-
-
-def setup_portal():
-    localmail_portal = portal.Portal(TestServerRealm())
-    localmail_portal.registerChecker(CredentialsNonChecker())
-    localmail_portal.registerChecker(checkers.AllowAnonymousAccess())
-    return localmail_portal

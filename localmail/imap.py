@@ -65,9 +65,3 @@ class TestServerIMAPFactory(protocol.Factory):
         p.portal = self.portal
         p.factory = self
         return p
-
-
-def setup_imap_server(port, portal):
-    imapServerFactory = TestServerIMAPFactory()
-    imapServerFactory.portal = portal
-    return internet.TCPServer(port, imapServerFactory)

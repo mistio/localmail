@@ -55,8 +55,3 @@ class TestServerESMTPFactory(smtp.SMTPFactory):
         p = smtp.SMTPFactory.buildProtocol(self, addr)
         p.challengers = self.challengers
         return p
-
-
-def setup_smtp_server(port, portal):
-    smtpServerFactory = TestServerESMTPFactory(portal)
-    return internet.TCPServer(port, smtpServerFactory)
