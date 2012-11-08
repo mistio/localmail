@@ -1,3 +1,3 @@
-restrict to 127.0.0.1
 make smtp/imap ports optional cmdline params
-support smtp login
+improve logging output
+Add SSL support back in

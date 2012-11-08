@@ -1,15 +1,16 @@
 from cStringIO import StringIO
 
-from zope.interface import implements
+from twisted.application import internet
 from twisted.internet import defer
-from twisted.mail.imap4 import LOGINCredentials, PLAINCredentials
 from twisted.mail import smtp
+from twisted.mail.imap4 import LOGINCredentials, PLAINCredentials
+from zope.interface import implements
 
 from inbox import INBOX
 
 
 class MemoryMessage(object):
-    """Reads a message into a StringIO, and passes on to IMAP inbox"""
+    """Reads a message into a StringIO, and passes on to global inbox"""
     implements(smtp.IMessage)
 
     def __init__(self):
@@ -29,6 +30,7 @@ class MemoryMessage(object):
 
 
 class MemoryDelivery(object):
+    """Null-validator for email address - always delivers succesfully"""
     implements(smtp.IMessageDelivery)
 
     def validateTo(self, user):
@@ -42,6 +44,7 @@ class MemoryDelivery(object):
 
 
 class TestServerESMTPFactory(smtp.SMTPFactory):
+    """Factort for SMTP connections that authenticates any user"""
     protocol = smtp.ESMTP
     challengers = {
         "LOGIN": LOGINCredentials,
@@ -53,3 +56,7 @@ class TestServerESMTPFactory(smtp.SMTPFactory):
         p.challengers = self.challengers
         return p
 
+
+def setup_smtp_server(port, portal):
+    smtpServerFactory = TestServerESMTPFactory(portal)
+    return internet.TCPServer(port, smtpServerFactory)

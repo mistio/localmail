@@ -1,8 +1,10 @@
-from zope.interface import implements
-from twisted.mail import imap4
+from twisted.application import internet
 from twisted.internet import protocol
+from twisted.mail import imap4
+from zope.interface import implements
 
 from inbox import INBOX
+
 
 class IMAPUserAccount(object):
     implements(imap4.IAccount)
@@ -55,12 +57,17 @@ class IMAPServerProtocol(imap4.IMAP4Server):
 
 class TestServerIMAPFactory(protocol.Factory):
     protocol = IMAPServerProtocol
-    portal = None # placeholder
+    portal = None  # placeholder
 
     def buildProtocol(self, address):
         p = self.protocol()
         # self.portal will be set up already "magically"
-        p.portal = self.portal 
+        p.portal = self.portal
         p.factory = self
         return p
 
+
+def setup_imap_server(port, portal):
+    imapServerFactory = TestServerIMAPFactory()
+    imapServerFactory.portal = portal
+    return internet.TCPServer(port, imapServerFactory)
