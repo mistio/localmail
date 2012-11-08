@@ -1,1 +1,2 @@
-twistd.pid
+twisted/plugins/*.cache
+twistd.*
