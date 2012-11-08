@@ -1,32 +1,6 @@
 
-Dependancies: twisted, anu recent version
+Dependancies: twisted, any recent version
 
 To run: twistd -ny server.py
 
 To test: while server is runinng, run "python test.py"
-
-
-example django config:
-
-[django]
-email_host = localhost
-email_port = 2025
-# no user/password - important!
-email_use_tls = False
-
-
-example test config (for work)
-
-[testing]
-...
-imap_server = localhost
-imap_port = 2143
-imap_use_ssl = False
-# needs to be full email
-imap_username = isdtest@canonical.com
-imap_password = DOESNOTMATTER
-# needs to include username above
-email_address_pattern = isdtest+%s@canonical.com
-
-
-
