@@ -1,6 +1,22 @@
+localmail
+---------
 
-Dependancies: twisted, any recent version
+Local SMTP/IMAP server for using in testing systems that send mail.
 
-To run: twistd -ny server.py
+Dependancies:
 
-To test: while server is runinng, run "python test.py"
+    twisted 12.0.0, but any recent version should work
+
+To run:
+
+    twistd localmail --imap <port> --smtp <port>
+
+    (Ports defaults to 2143 for IMAP and 2025 for SMTP)
+
+Alternatively, run via tac file:
+
+    twistd -ny localmail.tac
+
+To test:
+
+    while server is runinng, run "python test.py"
