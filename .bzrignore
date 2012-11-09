@@ -2,3 +2,4 @@ twisted/plugins/*.cache
 twistd.*
 dist
 localmail.egg-info
+_trial_temp
