@@ -1,6 +1,5 @@
 from cStringIO import StringIO
 
-from twisted.application import internet
 from twisted.internet import defer
 from twisted.mail import smtp
 from twisted.mail.imap4 import LOGINCredentials, PLAINCredentials

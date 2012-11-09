@@ -6,14 +6,17 @@ from cStringIO import StringIO
 from zope.interface import implements
 
 from twisted.mail import imap4
+from twisted.python import log
 
 MSG_COUNTER = count()
 LAST = MSG_COUNTER.next()
+
 
 def get_counter():
     global LAST
     LAST = MSG_COUNTER.next()
     return LAST
+
 
 class MemoryIMAPMailbox(object):
     implements(imap4.IMailbox)
@@ -47,7 +50,7 @@ class MemoryIMAPMailbox(object):
         return self.uidvalidity
 
     def getUID(self, messageNum):
-        return self.msgs[messageNum-1].uid
+        return self.msgs[messageNum - 1].uid
 
     def getUIDNext(self):
         return LAST + 1
@@ -57,6 +60,8 @@ class MemoryIMAPMailbox(object):
             messages = self._get_msgs_by_uid(msg_set)
         else:
             messages = self._get_msgs_by_seq(msg_set)
+        for s, m in messages.items():
+            log.msg("Fetching message %s" % m)
         return messages.items()
 
     def addListener(self, listener):
@@ -71,12 +76,13 @@ class MemoryIMAPMailbox(object):
         return imap4.statusRequestHelper(self, path)
 
     def addMessage(self, msg, flags=None, date=None):
-        if flags is None: 
+        if flags is None:
             flags = []
-        self.msgs.append(Message(msg, flags, date))
+        msg_obj = Message(msg, flags, date)
+        self.msgs.append(msg_obj)
 
     def _get_msgs_by_uid(self, msg_set):
-        return dict((i+1,m) for i,m in enumerate(self.msgs)
+        return dict((i + 1, m) for i, m in enumerate(self.msgs)
                     if m.uid in msg_set)
 
     def _get_msgs_by_seq(self, msg_set):
@@ -97,7 +103,7 @@ class MemoryIMAPMailbox(object):
             messages = self._get_msgs_by_seq(msg_set)
         setFlags = {}
         for seq, msg in messages.items():
-            if mode == 0: # replace flags
+            if mode == 0:  # replace flags
                 msg.flags = set(flags)
             else:
                 for flag in flags:
@@ -125,8 +131,10 @@ class MemoryIMAPMailbox(object):
 
 INBOX = MemoryIMAPMailbox()
 
+
 class Message(object):
     implements(imap4.IMessage)
+
     def __init__(self, fp, flags, date):
         self.msg = email.message_from_file(fp)
         self.data = str(self.msg)
@@ -155,7 +163,6 @@ class Message(object):
                 headers[name.lower()] = self.msg.get(name, '')
         return headers
 
-
     def getBodyFile(self):
         return StringIO(self.payload)
 
@@ -170,3 +177,6 @@ class Message(object):
             return self.payload
         raise IndexError
 
+    def __repr__(self):
+        headers = self.getHeaders(False, 'From', 'To')
+        return "<From: %s, To: %s>" % (headers['from'], headers['to'])

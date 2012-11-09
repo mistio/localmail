@@ -24,7 +24,7 @@ Localmail depends on Twisted, tested with version 11.0.0 and up.
 
 ::
 
-    pip install -r requirements.txt
+    pip install Twisted
 
 Run
 ===
@@ -37,7 +37,11 @@ There are multiple ways to run localmail
 
 This will run localmail in the background, SMTP on port 2025 and IMAP on 2143,
 It will log to a file twistd.log. Use the -n option if you want to run oin the
-foreground.
+foreground, like so.
+
+::
+
+    twistd -n localmail
 
 You can pass in arguments to control parameters.
 
@@ -54,7 +58,8 @@ Alternatively, run via tac file:
 Embedding
 =========
 
-If you want to embed localmail in another non-twisted program
+If you want to embed localmail in another non-twisted program, such as test
+runner, do the following.
 
 ::
 
@@ -70,13 +75,6 @@ If you want to embed localmail in another non-twisted program
 
 This will run the twisted reactor in a separate thread, and shut it down on
 exit.
-
-If you want to re-use in a twisted program, you can get the factories for the
-smtp and imap servers and hook up however you need.
-
-::
-
-    smtpFactory, imapFactory = localmail.get_factories()
 
 
 Testing

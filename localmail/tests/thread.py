@@ -1,8 +1,12 @@
-
+import sys
 import threading
 import localmail
 
+from twisted.python import log
+log.startLogging(sys.stdout)
+
 from simple import test
+
 thread = threading.Thread(target=localmail.run_thread, args=(2025, 2143))
 thread.start()
 

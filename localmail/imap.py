@@ -1,6 +1,6 @@
-from twisted.application import internet
 from twisted.internet import protocol
 from twisted.mail import imap4
+from twisted.python import log
 from zope.interface import implements
 
 from inbox import INBOX
@@ -42,17 +42,17 @@ class IMAPUserAccount(object):
 
 class IMAPServerProtocol(imap4.IMAP4Server):
     "Subclass of imap4.IMAP4Server that adds debugging."
-    debug = True
+    debug = False
 
     def lineReceived(self, line):
         if self.debug:
-            print "CLIENT:", line
+            log.msg("CLIENT:", line)
         imap4.IMAP4Server.lineReceived(self, line)
 
     def sendLine(self, line):
         imap4.IMAP4Server.sendLine(self, line)
         if self.debug:
-            print "SERVER:", line
+            log.msg("SERVER:", line)
 
 
 class TestServerIMAPFactory(protocol.Factory):
