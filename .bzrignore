@@ -1,2 +1,4 @@
 twisted/plugins/*.cache
 twistd.*
+dist
+localmail.egg-info
