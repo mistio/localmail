@@ -8,12 +8,6 @@ def print_msgs(imap, msgs):
         typ, data = imap.fetch(num, '(RFC822)')
         print 'Message %s\n%s\n' % (num, data[0][1])
 
-def send(s, from_, to, subject, body):
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = from_
-    msg['To'] = to
-    s.sendmail(from_, [to], msg.as_string())
 
 def test():
 
@@ -21,6 +15,12 @@ def test():
     s.set_debuglevel(1)
     s.login('any', 'thing')
 
+    def send(from_, to, subject, body):
+        msg = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From'] = from_
+        msg['To'] = to
+        s.sendmail(from_, [to], msg.as_string())
 
     print "Sending messages to SMTP"
     send('test@example.com', 'test+2@example.com', "test", "test\n" * 5)
