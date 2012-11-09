@@ -8,6 +8,12 @@ def print_msgs(imap, msgs):
         typ, data = imap.fetch(num, '(RFC822)')
         print 'Message %s\n%s\n' % (num, data[0][1])
 
+def send(s, from_, to, subject, body):
+    msg = MIMEText(body)
+    msg['Subject'] = subject
+    msg['From'] = from_
+    msg['To'] = to
+    s.sendmail(from_, [to], msg.as_string())
 
 def test():
 
@@ -15,39 +21,47 @@ def test():
     s.set_debuglevel(1)
     s.login('any', 'thing')
 
-    def send(from_, to, subject, body):
-        msg = MIMEText(body)
-        msg['Subject'] = subject
-        msg['From'] = from_
-        msg['To'] = to
-        s.sendmail(from_, [to], msg.as_string())
 
+    print "Sending messages to SMTP"
     send('test@example.com', 'test+2@example.com', "test", "test\n" * 5)
     send('test@example.com', 'test+2@example.com', "test2", "test2\n" * 5)
     send('test@example.com', 'test2+2@example.com', "test3", "test3\n" * 5)
     send('test@example.com', 'test2+2@example.com', "test4", "test4\n" * 5)
-
+    send('test@example.com', 'test2+3@example.com', "test5", "test5\n" * 5)
     s.quit()
+    print "Done\n"
 
     m = imaplib.IMAP4('localhost', 2143)
     m.login("test@example.com", "xxx")
     m.select()
 
-    status, data = m.search(None, 'TO', 'test+2@example.com')
-    assert status == 'OK'
-    assert data[0], "Failed to get messages!"
+    def get(*terms):
+        status, data = m.search(None, *terms)
+        assert status == 'OK'
+        if data and data[0]:
+            return data[0].split()
+        else:
+            return []
 
-    msgs = data[0].split()
+    def remove(msgs):
+        for num in msgs:
+            print "deleting msg %s" % num
+            m.store(num, '+FLAGS', r'\Deleted')
+        m.expunge()
+
+    msgs = get('TO', 'test+2@example.com')
+    assert msgs, "Failed to get messages!"
     assert len(msgs) == 2, "Not 2 messages"
     print_msgs(m, msgs)
+    remove(msgs)
 
-    print "deleting"
-    for num in msgs:
-        m.store(num, '+FLAGS', r'\Deleted')
-    m.expunge()
+    msgs = get('TO', 'test2+2@example.com')
+    assert len(msgs) == 2, "Should have two messages"
 
-    status, data = m.search(None, 'ALL')
-    assert not data[0], "Should have no messages"
+    msgs = get('ALL')
+    assert len(msgs) == 3, "Should have two messages"
+
+    remove(msgs)
 
     m.close()
     m.logout()

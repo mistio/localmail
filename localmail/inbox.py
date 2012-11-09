@@ -61,7 +61,7 @@ class MemoryIMAPMailbox(object):
         else:
             messages = self._get_msgs_by_seq(msg_set)
         for s, m in messages.items():
-            log.msg("Fetching message %s" % m)
+            log.msg("Fetching message %d %s" % (s, m))
         return messages.items()
 
     def addListener(self, listener):
@@ -113,15 +113,18 @@ class MemoryIMAPMailbox(object):
                     elif mode == -1 and flag in msg.flags:
                         msg.flags.remove(flag)
             setFlags[seq] = msg.flags
+            log.msg("Setting flags %s on msg %i %s" % (msg.flags, seq, msg))
         return setFlags
 
     def expunge(self):
         "remove all messages marked for deletion"
         remove = []
+        log.msg("Expunging")
         for i, msg in enumerate(self.msgs[:]):
             if r"\Deleted" in msg.flags:
                 self.msgs.remove(msg)
                 remove.append(msg.uid)
+                log.msg("Removing msg %d %s" % (i, msg))
         return remove
 
     def destroy(self):
