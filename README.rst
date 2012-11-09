@@ -80,9 +80,10 @@ exit.
 Testing
 =======
 
+The test suite is very simple, it uses the python stdlib imaplib and smtplib
+modules as clients, rather than twisted IMAP/SMTP, so it's more integration
+tests rather than unit tests
+
 ::
 
-    twistd localmail
-    python localmail/tests/simple.py
-    ./kill_localmail.sh
-    python localmail/tests/threads.py
+    ./test.sh

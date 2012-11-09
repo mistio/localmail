@@ -24,4 +24,6 @@ python -m unittest discover -s localmail -b
 
 run_old localmail/tests/simple.py
 sh kill_localmail.sh
+
+# starts up it's own server
 run_old localmail/tests/thread.py
