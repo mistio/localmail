@@ -2,17 +2,19 @@ import smtplib
 import imaplib
 from email.mime.text import MIMEText
 
+
 def print_msgs(imap, msgs):
     for num in msgs:
-        typ, data = m.fetch(num, '(RFC822)')
+        typ, data = imap.fetch(num, '(RFC822)')
         print 'Message %s\n%s\n' % (num, data[0][1])
 
 
+def test():
 
-if __name__ == '__main__':
     s = smtplib.SMTP('localhost', 2025)
     s.set_debuglevel(1)
     s.login('any', 'thing')
+
     def send(from_, to, subject, body):
         msg = MIMEText(body)
         msg['Subject'] = subject
@@ -20,10 +22,10 @@ if __name__ == '__main__':
         msg['To'] = to
         s.sendmail(from_, [to], msg.as_string())
 
-    send('test@example.com', 'test+2@example.com', "test", "test\n"*5)
-    send('test@example.com', 'test+2@example.com', "test2", "test2\n"*5)
-    send('test@example.com', 'test2+2@example.com', "test3", "test3\n"*5)
-    send('test@example.com', 'test2+2@example.com', "test4", "test4\n"*5)
+    send('test@example.com', 'test+2@example.com', "test", "test\n" * 5)
+    send('test@example.com', 'test+2@example.com', "test2", "test2\n" * 5)
+    send('test@example.com', 'test2+2@example.com', "test3", "test3\n" * 5)
+    send('test@example.com', 'test2+2@example.com', "test4", "test4\n" * 5)
 
     s.quit()
 
@@ -51,4 +53,5 @@ if __name__ == '__main__':
     m.logout()
 
 
-
+if __name__ == '__main__':
+    test()
