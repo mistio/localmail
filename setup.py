@@ -15,12 +15,15 @@ setup(name='localmail',
     url='https://launchpad.net/localmail',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
-    packages=['localmail'],
+    packages=['localmail', 'localmail.tests'],
     classifiers=[
         'Environment :: Console',
         'Intended Audience :: Developers',
         'Operating System :: POSIX',
         'Programming Language :: Python',
         'Topic :: Communications :: Email',
+    ],
+    install_requires=[
+        "Twisted >= 11.0.0",
     ],
 )
