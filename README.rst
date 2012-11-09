@@ -66,7 +66,7 @@ runner, do the following.
     import threading
     import localmail
 
-    thread = threading.Thread(target=localmail.run_thread, args=(2025, 2143))
+    thread = threading.Thread(target=localmail.run, args=(2025, 2143))
     thread.start()
 
     ...
