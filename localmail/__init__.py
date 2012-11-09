@@ -29,7 +29,7 @@ def get_services(smtp_port, imap_port):
     return smtp, imap
 
 
-def run_thread(smtp_port=2025, imap_port=2143):
+def run(smtp_port=2025, imap_port=2143):
     from twisted.internet import reactor
     smtpFactory, imapFactory = get_factories()
     reactor.listenTCP(smtp_port, smtpFactory)

@@ -7,7 +7,7 @@ log.startLogging(sys.stdout)
 
 from simple import test
 
-thread = threading.Thread(target=localmail.run_thread, args=(2025, 2143))
+thread = threading.Thread(target=localmail.run, args=(2025, 2143))
 thread.start()
 
 print "Starting run"
