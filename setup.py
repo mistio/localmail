@@ -20,11 +20,11 @@ from setuptools import setup
 
 DESCRIPTION = """Test SMTP/IMAP server for local integration testing"""
 
-LONG_DESCRIPTION = open('README.rst').read()
+LONG_DESCRIPTION = open('README').read()
 
 setup(
     name='localmail',
-    version='0.1',
+    version='0.2',
     author='Simon Davy',
     author_email='simon.davy@canonical.com',
     url='https://launchpad.net/localmail',
