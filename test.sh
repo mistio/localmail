@@ -19,7 +19,7 @@ echo -n "Starting localmail..."
 twistd localmail
 echo "done"
 
-echo "Running new funtional tests"
+echo "Running new functional tests"
 python -m unittest discover -s localmail -b
 
 run_old localmail/tests/simple.py
