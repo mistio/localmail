@@ -30,6 +30,7 @@ setup(
     url='https://launchpad.net/localmail',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
+    license='GPLv3',
     packages=['localmail', 'localmail.tests', 'twisted.plugins'],
     classifiers=[
         'Development Status :: 4 - Beta',
