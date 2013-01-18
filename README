@@ -11,7 +11,6 @@ receiver email addresses are treated the same. Messages are not persisted, and
 will be lost on shutdown.
 
 Limitations
- - logging is bit verbose
  - no SSL support
  - very simple tests
 
@@ -20,11 +19,10 @@ WARNING: not a real SMTP/IMAP server - not for production usage.
 Install
 =======
 
-Localmail depends on Twisted, tested with version 11.0.0 and up.
-
 ::
+    
+    pip install localmail
 
-    pip install Twisted
 
 Run
 ===
@@ -36,8 +34,8 @@ There are multiple ways to run localmail
     twistd localmail
 
 This will run localmail in the background, SMTP on port 2025 and IMAP on 2143,
-It will log to a file twistd.log. Use the -n option if you want to run oin the
-foreground, like so.
+It will log to a file ./twistd.log. Use the -n option if you want to run in
+the foreground, like so.
 
 ::
 
@@ -76,6 +74,12 @@ runner, do the following.
 This will run the twisted reactor in a separate thread, and shut it down on
 exit.
 
+
+Development
+===========
+
+::
+    python setup.py develop
 
 Testing
 =======
