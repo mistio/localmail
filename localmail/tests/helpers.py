@@ -1,6 +1,5 @@
 import smtplib
 import imaplib
-from email.mime.text import MIMEText
 from email import message_from_string
 
 
@@ -42,12 +41,8 @@ class SMTPClient(ContextHelper):
     def stop(self):
         self.client.quit()
 
-    def send(self, from_, to, subject, body):
-        msg = MIMEText(body)
-        msg['Subject'] = subject
-        msg['From'] = from_
-        msg['To'] = to
-        self.client.sendmail(from_, [to], msg.as_string())
+    def send(self, msg):
+        self.client.sendmail(msg['From'], msg['To'], msg.as_string())
 
 
 class IMAPClient(ContextHelper):
@@ -106,12 +101,3 @@ class IMAPClient(ContextHelper):
         else:
             msg_set = str(seq)
         return msg_set
-
-
-def testmsg(n):
-    return (
-        'to%s@example.com' % n,
-        'from%s@example.com' % n,
-        "test %s" % n,
-        "test %s\n" % n
-    )

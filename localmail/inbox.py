@@ -149,25 +149,11 @@ class MemoryIMAPMailbox(object):
 INBOX = MemoryIMAPMailbox()
 
 
-class Message(object):
-    implements(imap4.IMessage)
+class MessagePart(object):
+    implements(imap4.IMessagePart)
 
-    def __init__(self, fp, flags, date):
-        self.msg = email.message_from_file(fp)
-        self.data = str(self.msg)
-        self.uid = get_counter()
-        self.flags = set(flags)
-        self.date = date
-        self.payload = self.msg.get_payload()
-
-    def getUID(self):
-        return self.uid
-
-    def getFlags(self):
-        return self.flags
-
-    def getInternalDate(self):
-        return self.date
+    def __init__(self, msg):
+        self.msg = msg
 
     def getHeaders(self, negate, *names):
         headers = {}
@@ -181,19 +167,41 @@ class Message(object):
         return headers
 
     def getBodyFile(self):
-        return StringIO(self.payload)
+        if self.msg.is_multipart():
+            raise TypeError("Requested body file of a multipart message")
+        return StringIO(self.msg.get_payload())
 
     def getSize(self):
-        return len(self.data)
+        return len(self.msg.as_string())
 
     def isMultipart(self):
-        return False
+        return self.msg.is_multipart()
 
     def getSubPart(self, part):
-        if part == 0:
-            return self.payload
-        raise IndexError
+        if self.msg.is_multipart():
+            return MessagePart(self.msg.get_payload()[part])
+        raise TypeError("Not a multipart message")
+
+
+class Message(MessagePart):
+    implements(imap4.IMessage)
+
+    def __init__(self, fp, flags, date):
+        super(Message, self).__init__(email.message_from_file(fp))
+        self.data = str(self.msg)
+        self.uid = get_counter()
+        self.flags = set(flags)
+        self.date = date
+
+    def getUID(self):
+        return self.uid
+
+    def getFlags(self):
+        return self.flags
+
+    def getInternalDate(self):
+        return self.date
 
     def __repr__(self):
-        headers = self.getHeaders(False, 'From', 'To')
-        return "<From: %s, To: %s>" % (headers['from'], headers['to'])
+        h = self.getHeaders(False, 'From', 'To')
+        return "<From: %s, To: %s, Uid: %s>" % (h['from'], h['to'], self.uid)

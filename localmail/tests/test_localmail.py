@@ -4,12 +4,14 @@ import time
 import threading
 import imaplib
 import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 import localmail
+
 from helpers import (
     SMTPClient,
     IMAPClient,
-    testmsg,
     clean_inbox,
 )
 
@@ -76,11 +78,11 @@ class AuthTestCase(BaseLocalmailTestcase):
             self.assertEqual(imap.search('ALL'), ('OK', [None]))
 
 
-class LocalmailTestCase(BaseLocalmailTestcase):
+class SequentialIdTestCase(BaseLocalmailTestcase):
     uid = False
 
     def setUp(self):
-        super(LocalmailTestCase, self).setUp()
+        super(SequentialIdTestCase, self).setUp()
         self.smtp = SMTPClient()
         self.smtp.start()
         self.imap = IMAPClient(uid=self.uid)
@@ -90,41 +92,61 @@ class LocalmailTestCase(BaseLocalmailTestcase):
         self.addCleanup(self.smtp.stop)
         self.addCleanup(self.imap.stop)
 
-    def assert_message(self, msg, from_, to, subject, body):
-        self.assertEqual(msg['From'], from_)
-        self.assertEqual(msg['To'], to)
-        self.assertEqual(msg['Subject'], subject)
-        self.assertEqual(msg.get_payload(), body)
+    def _testmsg(self, n):
+        msg = MIMEText("test %s" % n)
+        msg['Subject'] = "test %s" % n
+        msg['From'] = 'from%s@example.com' % n
+        msg['To'] = 'to%s@example.com' % n
+        return msg
 
-    def test_single_message(self):
-        self.smtp.send(*testmsg(1))
+    def assert_message(self, msg, n):
+        expected = self._testmsg(n)
+        self.assertEqual(msg['From'], expected['From'])
+        self.assertEqual(msg['To'], expected['To'])
+        self.assertEqual(msg['Subject'], expected['Subject'])
+        self.assertEqual(msg.is_multipart(), expected.is_multipart())
+        if msg.is_multipart():
+            for part, expected_part in zip(msg.walk(), expected.walk()):
+                self.assertEqual(part.get_content_maintype(),
+                                 expected_part.get_content_maintype())
+                if part.get_content_maintype() == 'multipart':
+                    continue
+                else:
+                    self.assertEqual(part.get_payload().strip(),
+                                     expected_part.get_payload().strip())
+        else:
+            self.assertEqual(msg.get_payload().strip(),
+                             expected.get_payload().strip())
+
+    def test_simple_message(self):
+        self.smtp.send(self._testmsg(1))
         msg = self.imap.fetch(1)
-        self.assert_message(msg, *testmsg(1))
+        self.assert_message(msg, 1)
 
     def test_multiple_messages(self):
-        self.smtp.send(*testmsg(1))
-        self.smtp.send(*testmsg(2))
+        self.smtp.send(self._testmsg(1))
+        self.smtp.send(self._testmsg(2))
         msg1 = self.imap.fetch(1)
         msg2 = self.imap.fetch(2)
-        self.assert_message(msg1, *testmsg(1))
-        self.assert_message(msg2, *testmsg(2))
+        self.assert_message(msg1, 1)
+        self.assert_message(msg2, 2)
 
     def test_delete_single_message(self):
-        self.smtp.send(*testmsg(1))
+        self.smtp.send(self._testmsg(1))
         self.imap.store(1, '(\Deleted)')
         self.imap.client.expunge()
         self.assertEqual(self.imap.search('ALL'), [])
 
     def test_delete_with_multiple(self):
-        self.smtp.send(*testmsg(1))
-        self.smtp.send(*testmsg(2))
+        self.smtp.send(self._testmsg(1))
+        self.smtp.send(self._testmsg(2))
         self.imap.store(1, '(\Deleted)')
         self.imap.client.expunge()
         self.assertEqual(self.imap.search('ALL'), [self.imap.msgid(1)])
 
     def test_search_deleted(self):
-        self.smtp.send(*testmsg(1))
-        self.smtp.send(*testmsg(2))
+        self.smtp.send(self._testmsg(1))
+        self.smtp.send(self._testmsg(2))
         self.imap.store(1, '(\Deleted)')
         self.assertEqual(self.imap.search('(DELETED)'),
                 [self.imap.msgid(1)])
@@ -132,5 +154,19 @@ class LocalmailTestCase(BaseLocalmailTestcase):
                 [self.imap.msgid(2)])
 
 
-class UidLocalmailTestCase(LocalmailTestCase):
+class UidTestCase(SequentialIdTestCase):
     uid = True
+
+
+class MultipartTestCase(SequentialIdTestCase):
+
+    def _testmsg(self, n):
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = 'test %s' % n
+        msg['From'] = 'from%s@example.com' % n
+        msg['To'] = 'to%s@example.com' % n
+        html = MIMEText('<b>test %s</b>' % n, 'html')
+        text = MIMEText('test %s' % n, 'plain')
+        msg.attach(html)
+        msg.attach(text)
+        return msg
