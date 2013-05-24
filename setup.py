@@ -16,11 +16,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import sys
+
 from setuptools import setup, find_packages
 
 DESCRIPTION = """Test SMTP/IMAP server for local integration testing"""
 
 LONG_DESCRIPTION = open('README').read()
+
+if sys.version_info[1] < 7:
+    test_requirements = ['unittest2']
+    test_suite = 'unittest2.collector'
+else:
+    test_requirements = []
+    test_suite = 'localmail.tests'
 
 setup(
     name='localmail',
@@ -48,9 +57,10 @@ setup(
         'Topic :: Software Development :: Testing',
     ],
     install_requires=[
-        "Twisted >= 11.0.0",
+        'Twisted >= 11.0.0'
     ],
-    test_suite='localmail.tests',
+    tests_require=test_requirements,
+    test_suite=test_suite,
 )
 
 # Make Twisted regenerate the dropin.cache, if possible.  This is necessary

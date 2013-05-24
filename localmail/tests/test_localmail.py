@@ -1,11 +1,15 @@
 import os
-import unittest
 import time
 import threading
 import imaplib
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest  # NOQA
 
 import localmail
 
@@ -109,9 +113,7 @@ class SequentialIdTestCase(BaseLocalmailTestcase):
             for part, expected_part in zip(msg.walk(), expected.walk()):
                 self.assertEqual(part.get_content_maintype(),
                                  expected_part.get_content_maintype())
-                if part.get_content_maintype() == 'multipart':
-                    continue
-                else:
+                if part.get_content_maintype() != 'multipart':
                     self.assertEqual(part.get_payload().strip(),
                                      expected_part.get_payload().strip())
         else:
