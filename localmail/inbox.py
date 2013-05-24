@@ -23,40 +23,59 @@ from zope.interface import implements
 from twisted.mail import imap4
 from twisted.python import log
 
-MSG_COUNTER = count()
-LAST = MSG_COUNTER.next()
+UID_GENERATOR = count()
+LAST_UID = UID_GENERATOR.next()
+
+SEEN = r'\Seen'
+UNSEEN = r'\Unseen'
+DELETED = r'\Deleted'
+FLAGGED = r'\Flagged'
+ANSWERED = r'\Answered'
+RECENT = r'\Recent'
 
 
 def get_counter():
-    global LAST
-    LAST = MSG_COUNTER.next()
-    return LAST
+    global LAST_UID
+    LAST_UID = UID_GENERATOR.next()
+    return LAST_UID
 
 
 class MemoryIMAPMailbox(object):
     implements(imap4.IMailbox)
 
     def __init__(self):
+        # can't use OrderedDict as need to support 2.6 :(
         self.msgs = []
         self.listeners = []
         self.uidvalidity = random.randint(1000000, 9999999)
+
+    def _get_msgs(self, msg_set, uid):
+        if not self.msgs:
+            return {}
+        if uid:
+            msg_set.last = LAST_UID
+            uids = set(msg_set)
+            return dict((i, msg) for i, msg in enumerate(self.msgs)
+                        if msg.uid in uids)
+        else:
+            msg_set.last = len(self.msgs)
+            return dict((i, self.msgs[i - 1]) for i in msg_set)
 
     def getHierarchicalDelimiter(self):
         return "."
 
     def getFlags(self):
         "return list of flags supported by this mailbox"
-        return [r'\Seen', r'\Unseen', r'\Deleted',
-                r'\Flagged', r'\Answered', r'\Recent']
+        return [SEEN, UNSEEN, DELETED, FLAGGED, ANSWERED, RECENT]
 
     def getMessageCount(self):
         return len(self.msgs)
 
     def getRecentCount(self):
-        return 0
+        return len([m for m in self.msgs if RECENT in m.getFlags()])
 
     def getUnseenCount(self):
-        return 0
+        return len([m for m in self.msgs if UNSEEN in m.getFlags()])
 
     def isWriteable(self):
         return True
@@ -68,13 +87,10 @@ class MemoryIMAPMailbox(object):
         return self.msgs[messageNum - 1].uid
 
     def getUIDNext(self):
-        return LAST + 1
+        return LAST_UID + 1
 
     def fetch(self, msg_set, uid):
-        if uid:
-            messages = self._get_msgs_by_uid(msg_set)
-        else:
-            messages = self._get_msgs_by_seq(msg_set)
+        messages = self._get_msgs(msg_set, uid)
         for s, m in messages.items():
             log.msg("Fetching message %d %s" % (s, m))
         return messages.items()
@@ -90,32 +106,14 @@ class MemoryIMAPMailbox(object):
     def requestStatus(self, path):
         return imap4.statusRequestHelper(self, path)
 
-    def addMessage(self, msg, flags=None, date=None):
+    def addMessage(self, msg_fp, flags=None, date=None):
         if flags is None:
             flags = []
-        msg_obj = Message(msg, flags, date)
-        self.msgs.append(msg_obj)
-
-    def _get_msgs_by_uid(self, msg_set):
-        return dict((i + 1, m) for i, m in enumerate(self.msgs)
-                    if m.uid in msg_set)
-
-    def _get_msgs_by_seq(self, msg_set):
-        l = len(self.msgs)
-        if not msg_set.last:
-            msg_set.last = l
-        d = dict()
-        for i in msg_set:
-            x = i - 1
-            if -1 < x < l:
-                d[i] = self.msgs[x]
-        return d
+        msg = Message(msg_fp, flags, date)
+        self.msgs.append(msg)
 
     def store(self, msg_set, flags, mode, uid):
-        if uid:
-            messages = self._get_msgs_by_uid(msg_set)
-        else:
-            messages = self._get_msgs_by_seq(msg_set)
+        messages = self._get_msgs(msg_set, uid)
         setFlags = {}
         for seq, msg in messages.items():
             if mode == 0:  # replace flags
@@ -133,14 +131,15 @@ class MemoryIMAPMailbox(object):
 
     def expunge(self):
         "remove all messages marked for deletion"
-        remove = []
+        removed = []
         log.msg("Expunging")
         for i, msg in enumerate(self.msgs[:]):
-            if r"\Deleted" in msg.flags:
+            if DELETED in msg.flags:
+                # use less efficient remove() because the indexes are changing
                 self.msgs.remove(msg)
-                remove.append(msg.uid)
-                log.msg("Removing msg %d %s" % (i, msg))
-        return remove
+                removed.append(msg.uid)
+                log.msg("Removing sid %d uid %s %s" % (i + 1, msg.uid, msg))
+        return removed
 
     def destroy(self):
         "complete remove the mailbox and all its contents"

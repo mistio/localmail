@@ -12,7 +12,6 @@ will be lost on shutdown.
 
 Limitations
  - no SSL support
- - very simple tests
 
 WARNING: not a real SMTP/IMAP server - not for production usage.
 
@@ -86,8 +85,7 @@ Testing
 
 The test suite is very simple, it uses the python stdlib imaplib and smtplib
 modules as clients, rather than twisted IMAP/SMTP, so it's more integration
-tests rather than unit tests
+tests rather than unit tests.
 
 ::
-
-    ./test.sh
+    python setup.py test [-s localmail.tests.test_localmail.SomeTestCase.test_something]

@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 DESCRIPTION = """Test SMTP/IMAP server for local integration testing"""
 
@@ -24,14 +24,14 @@ LONG_DESCRIPTION = open('README').read()
 
 setup(
     name='localmail',
-    version='0.2',
+    version='0.3',
     author='Simon Davy',
     author_email='simon.davy@canonical.com',
     url='https://launchpad.net/localmail',
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     license='GPLv3',
-    packages=['localmail', 'localmail.tests', 'twisted.plugins'],
+    packages=find_packages(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -50,6 +50,7 @@ setup(
     install_requires=[
         "Twisted >= 11.0.0",
     ],
+    test_suite='localmail.tests',
 )
 
 # Make Twisted regenerate the dropin.cache, if possible.  This is necessary

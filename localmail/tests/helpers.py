@@ -1,6 +1,7 @@
 import smtplib
 import imaplib
 from email.mime.text import MIMEText
+from email import message_from_string
 
 
 class ContextHelper(object):
@@ -11,69 +12,106 @@ class ContextHelper(object):
         return self.stop()
 
 
-class SMTPHelper(ContextHelper):
-    def __init__(self, host='localhost', port=2025):
+def clean_inbox(host, port):
+    imap = imaplib.IMAP4(host, port)
+    imap.login('x', 'y')
+    imap.select()
+    success, data = imap.search(None, 'ALL')
+    for msgs in data:
+        if msgs:
+            for id in msgs.split():
+                imap.store(id, '+FLAGS', r'(\Deleted)')
+    imap.expunge()
+    imap.close()
+    imap.logout()
+
+
+class SMTPClient(ContextHelper):
+    def __init__(self, host='localhost', port=2025, user='x', password='y'):
         self.host = host
         self.port = port
+        self.user = user
+        self.password = password
 
     def start(self):
-        self.smtp = smtplib.SMTP(self.host, self.port)
-        #self.smtp.set_debuglevel(1)
+        self.client = smtplib.SMTP(self.host, self.port)
+        #self.client.set_debuglevel(1)
+        self.client.login(self.user, self.password)
         return self
 
     def stop(self):
-        self.smtp.quit()
-
-    def login(self, un='', pw=''):
-        self.smtp.login(un, pw)
+        self.client.quit()
 
     def send(self, from_, to, subject, body):
         msg = MIMEText(body)
         msg['Subject'] = subject
         msg['From'] = from_
         msg['To'] = to
-        self.smtp.sendmail(from_, [to], msg.as_string())
+        self.client.sendmail(from_, [to], msg.as_string())
 
 
-class IMAPHelper(ContextHelper):
-    def __init__(self, host='localhost', port=2143):
+class IMAPClient(ContextHelper):
+    def __init__(self,
+            host='localhost',
+            port=2143,
+            username='x',
+            password='y',
+            uid=False):
         self.host = host
         self.port = port
+        self.username = username
+        self.password = password
+        self.uid = uid
 
     def start(self):
-        self.imap = imaplib.IMAP4(self.host, self.port)
+        self.client = imaplib.IMAP4(self.host, self.port)
+        self.client.login(self.username, self.password)
+        self.client.select()
         return self
 
     def stop(self):
-        self.remove(self.search('ALL'))
-        self.imap.close()
-        self.imap.logout()
+        self.client.close()
+        self.client.logout()
 
-    def login(self, un='', pw=''):
-        self.imap.login(un, pw)
-        self.imap.select()
+    def call(self, func, *args):
+        assert func in ('store', 'fetch', 'search')
+        if self.uid:
+            success, data = self.client.uid(func, *args)
+        else:
+            success, data = getattr(self.client, func)(*args)
+        assert success == 'OK'
+        return data
 
-    def fetch(self, seq):
-        typ, data = self.imap.fetch(seq, '(RFC822)')
-        return data[0][1]
+    def fetch(self, id):
+        data = self.call('fetch', self.msgid(id), '(RFC822)')
+        return message_from_string(data[0][1])
 
     def search(self, *terms):
-        status, data = self.imap.search(None, *terms)
-        assert status == 'OK'
+        data = self.call('search', None, *terms)
         if data and data[0]:
             return data[0].split()
         else:
             return []
 
-    def remove(self, msgs):
-        for num in msgs:
-            self.imap.store(num, '+FLAGS', r'\Deleted')
-        self.imap.expunge()
+    def store(self, id, flags, type='+FLAGS'):
+        return self.call('store', self.msgid(id), type, flags)
+
+    def msgid(self, seq):
+        seq = int(seq)
+        if self.uid:
+            msgs = self.search('ALL')
+            if seq > len(msgs):
+                return None
+            msg_set = msgs[seq - 1]
+        else:
+            msg_set = str(seq)
+        return msg_set
 
 
-TESTMSG_DATA = (
-    'test@example.com',
-    'test2@example.com',
-    "test",
-    "test\n" * 3
-)
+def testmsg(n):
+    return (
+        'to%s@example.com' % n,
+        'from%s@example.com' % n,
+        "test %s" % n,
+        "test %s\n" % n
+    )
