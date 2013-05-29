@@ -1,0 +1,5 @@
+Main author:
+Simon Davy <simon.davy@canonical.com>
+
+Contributers:
+Ed Jannoo <ed@azordi.com>
