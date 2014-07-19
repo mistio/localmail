@@ -44,7 +44,7 @@ You can pass in arguments to control parameters.
 
 ::
 
-   twistd localmail --imap <port> --smtp <port> -l localmail.log
+   twistd localmail --imap <port> --smtp <port>
 
 Alternatively, run via tac file:
 

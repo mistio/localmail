@@ -110,6 +110,8 @@ class MemoryIMAPMailbox(object):
         if flags is None:
             flags = []
         msg = Message(msg_fp, flags, date)
+        log.msg(msg)
+        log.msg(msg.msg.get_payload())
         self.msgs.append(msg)
 
     def store(self, msg_set, flags, mode, uid):

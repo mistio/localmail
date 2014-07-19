@@ -25,10 +25,17 @@ HOST = 'localhost'
 SMTP_PORT = 2025
 IMAP_PORT = 2143
 
-if 'LOCALMAIL_EXTERNAL' not in os.environ:
+if 'LOCALMAIL' in os.environ:
+    LOCALMAIL = os.getenv('LOCALMAIL')
+    if ':' in LOCALMAIL:
+        HOST, ports = LOCALMAIL.split(':')
+        SMTP_PORT, IMAP_PORT = ports.split(',')
+        print SMTP_PORT, IMAP_PORT
+else:
     def setUpModule():
         global thread
-        thread = threading.Thread(target=localmail.run, args=(2025, 2143))
+        thread = threading.Thread(
+            target=localmail.run, args=(SMTP_PORT, IMAP_PORT))
         thread.start()
         time.sleep(1)
 
@@ -87,9 +94,9 @@ class SequentialIdTestCase(BaseLocalmailTestcase):
 
     def setUp(self):
         super(SequentialIdTestCase, self).setUp()
-        self.smtp = SMTPClient()
+        self.smtp = SMTPClient(HOST, SMTP_PORT)
         self.smtp.start()
-        self.imap = IMAPClient(uid=self.uid)
+        self.imap = IMAPClient(HOST, IMAP_PORT, uid=self.uid)
         self.imap.start()
         msgs = self.imap.search('ALL')
         self.assertEqual(msgs, [])
