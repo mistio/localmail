@@ -25,7 +25,8 @@ import localmail
 class Options(usage.Options):
     optParameters = [
         ["smtp", "s", 2025, "The port number the SMTP server will listen on"],
-        ["imap", "i", 2143, "The port number the IMAP server will listen on"]
+        ["imap", "i", 2143, "The port number the IMAP server will listen on"],
+        ["file", "f", None, "File to write messages to"],
     ]
 
 
@@ -42,6 +43,9 @@ class LocalmailServiceMaker(object):
             int(options['smtp']),
             int(options['imap'])
         )
+        if options['file']:
+            from localmail.inbox import INBOX
+            INBOX.setFile(options['file'])
         imap.setServiceParent(svc)
         smtp.setServiceParent(svc)
         return svc

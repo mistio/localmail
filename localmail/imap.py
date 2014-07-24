@@ -57,17 +57,12 @@ class IMAPUserAccount(object):
 
 class IMAPServerProtocol(imap4.IMAP4Server):
     "Subclass of imap4.IMAP4Server that adds debugging."
-    debug = False
 
     def lineReceived(self, line):
-        if self.debug:
-            log.msg("CLIENT:", line)
         imap4.IMAP4Server.lineReceived(self, line)
 
     def sendLine(self, line):
         imap4.IMAP4Server.sendLine(self, line)
-        if self.debug:
-            log.msg("SERVER:", line)
 
 
 class TestServerIMAPFactory(protocol.Factory):

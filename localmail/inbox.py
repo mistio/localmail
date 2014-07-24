@@ -13,14 +13,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 import random
 import email
+import mailbox
+import email.utils
 from itertools import count
 from cStringIO import StringIO
 
 from zope.interface import implements
 
 from twisted.mail import imap4
+from twisted.internet import reactor
 from twisted.python import log
 
 UID_GENERATOR = count()
@@ -42,6 +46,29 @@ def get_counter():
 
 class MemoryIMAPMailbox(object):
     implements(imap4.IMailbox)
+
+    mbox = None
+
+    def addMessage(self, msg_fp, flags=None, date=None):
+        if flags is None:
+            flags = []
+        if date is None:
+            date = email.utils.formatdate()
+        msg = Message(msg_fp, flags, date)
+        if self.mbox is not None:
+            self.mbox.add(msg.msg)
+        self.msgs.append(msg)
+
+    def setFile(self, path):
+        log.msg("creating mbox file %s" % path)
+        self.mbox = mailbox.mbox(path)
+        reactor.callLater(5, self.flush)
+
+    def flush(self):
+        if self.mbox is not None:
+            log.msg("flushing mailbox")
+            self.mbox.flush()
+            reactor.callLater(5, self.flush)
 
     def __init__(self):
         # can't use OrderedDict as need to support 2.6 :(
@@ -91,8 +118,6 @@ class MemoryIMAPMailbox(object):
 
     def fetch(self, msg_set, uid):
         messages = self._get_msgs(msg_set, uid)
-        for s, m in messages.items():
-            log.msg("Fetching message %d %s" % (s, m))
         return messages.items()
 
     def addListener(self, listener):
@@ -105,14 +130,6 @@ class MemoryIMAPMailbox(object):
 
     def requestStatus(self, path):
         return imap4.statusRequestHelper(self, path)
-
-    def addMessage(self, msg_fp, flags=None, date=None):
-        if flags is None:
-            flags = []
-        msg = Message(msg_fp, flags, date)
-        log.msg(msg)
-        log.msg(msg.msg.get_payload())
-        self.msgs.append(msg)
 
     def store(self, msg_set, flags, mode, uid):
         messages = self._get_msgs(msg_set, uid)
@@ -128,19 +145,16 @@ class MemoryIMAPMailbox(object):
                     elif mode == -1 and flag in msg.flags:
                         msg.flags.remove(flag)
             setFlags[seq] = msg.flags
-            log.msg("Setting flags %s on msg %i %s" % (msg.flags, seq, msg))
         return setFlags
 
     def expunge(self):
         "remove all messages marked for deletion"
         removed = []
-        log.msg("Expunging")
         for i, msg in enumerate(self.msgs[:]):
             if DELETED in msg.flags:
                 # use less efficient remove() because the indexes are changing
                 self.msgs.remove(msg)
                 removed.append(msg.uid)
-                log.msg("Removing sid %d uid %s %s" % (i + 1, msg.uid, msg))
         return removed
 
     def destroy(self):
