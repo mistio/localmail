@@ -4,14 +4,15 @@ Localmail
 Localmail is SMTP and IMAP server that writes/reads all messages into a single
 in-memory mailbox. It is designed to be used to speed up running test suites on
 systems that send email, such as new account sign up emails with confirmation
-codes.
+codes. It can also be used to test SMTP/IMAP client code.
 
 Authentication is supported but completely ignored, and all senders and
 receiver email addresses are treated the same. Messages are not persisted, and
-will be lost on shutdown.
+will be lost on shutdown by default. Optionally, you can log messages to disk
+in mbox format.
 
 Limitations
- - no SSL support
+ - no SSL support, but coming
 
 WARNING: not a real SMTP/IMAP server - not for production usage.
 
@@ -40,13 +41,14 @@ the foreground, like so.
 
     twistd -n localmail
 
+
 You can pass in arguments to control parameters.
 
 ::
 
-   twistd localmail --imap <port> --smtp <port>
+   twistd localmail --imap <port> --smtp <port> --file localmail.mbox
 
-Alternatively, run via tac file:
+Alternatively, run via tac file (but with no paramerisation, currently):
 
 ::
 
@@ -63,7 +65,7 @@ runner, do the following.
     import threading
     import localmail
 
-    thread = threading.Thread(target=localmail.run, args=(2025, 2143))
+    thread = threading.Thread(target=localmail.run, args=(2025, 2143, 'localmail.mbox'))
     thread.start()
 
     ...

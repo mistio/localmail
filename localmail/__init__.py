@@ -44,8 +44,11 @@ def get_services(smtp_port, imap_port):
     return smtp, imap
 
 
-def run(smtp_port=2025, imap_port=2143):
+def run(smtp_port=2025, imap_port=2143, mbox_path=None):
     from twisted.internet import reactor
+    if mbox_path is not None:
+        from localmail.inbox import INBOX
+        INBOX.setFile(mbox_path)
     smtpFactory, imapFactory = get_factories()
     reactor.listenTCP(smtp_port, smtpFactory)
     reactor.listenTCP(imap_port, imapFactory)
