@@ -18,6 +18,7 @@ from twisted.cred import portal, checkers
 from .cred import TestServerRealm, CredentialsNonChecker
 from .smtp import TestServerESMTPFactory
 from .imap import TestServerIMAPFactory
+from .http import TestServerHTTPFactory, index
 
 
 def get_portal():
@@ -32,26 +33,29 @@ def get_factories():
     smtpServerFactory = TestServerESMTPFactory(auth)
     imapServerFactory = TestServerIMAPFactory()
     imapServerFactory.portal = auth
-    return smtpServerFactory, imapServerFactory
+    httpServerFactory = TestServerHTTPFactory(index)
+    return smtpServerFactory, imapServerFactory, httpServerFactory
 
 
-def get_services(smtp_port, imap_port):
-    smtpFactory, imapFactory = get_factories()
+def get_services(smtp_port, imap_port, http_port):
+    smtpFactory, imapFactory, httpFactory = get_factories()
 
     smtp = internet.TCPServer(smtp_port, smtpFactory)
     imap = internet.TCPServer(imap_port, imapFactory)
+    http = internet.TCPServer(http_port, httpFactory)
 
-    return smtp, imap
+    return smtp, imap, http
 
 
-def run(smtp_port=2025, imap_port=2143, mbox_path=None):
+def run(smtp_port=2025, imap_port=2143, http_port=8880, mbox_path=None):
     from twisted.internet import reactor
     if mbox_path is not None:
         from localmail.inbox import INBOX
         INBOX.setFile(mbox_path)
-    smtpFactory, imapFactory = get_factories()
+    smtpFactory, imapFactory, httpFactory = get_factories()
     reactor.listenTCP(smtp_port, smtpFactory)
     reactor.listenTCP(imap_port, imapFactory)
+    reactor.listenTCP(http_port, httpFactory)
     reactor.run(installSignalHandlers=0)
 
 

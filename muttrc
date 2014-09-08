@@ -1,0 +1,10 @@
+set imap_user = "user@anywhere.com"
+set imap_pass = "pass"
+set folder = "imap://127.0.0.1:2143"
+
+set smtp_url = "smtp://user@127.0.0.1:2025/"
+set smtp_pass = "pass"
+set from = "localmail@localmail.com"
+set realname = "Localmail Test User"
+set spoolfile = "+INBOX"
+set move=no

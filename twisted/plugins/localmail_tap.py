@@ -26,6 +26,7 @@ class Options(usage.Options):
     optParameters = [
         ["smtp", "s", 2025, "The port number the SMTP server will listen on"],
         ["imap", "i", 2143, "The port number the IMAP server will listen on"],
+        ["http", "h", 8880, "The port number the HTTP server will listen on"],
         ["file", "f", None, "File to write messages to"],
     ]
 
@@ -39,15 +40,17 @@ class LocalmailServiceMaker(object):
     def makeService(self, options):
         svc = service.MultiService()
         svc.setName("localmail")
-        smtp, imap = localmail.get_services(
+        smtp, imap, http = localmail.get_services(
             int(options['smtp']),
-            int(options['imap'])
+            int(options['imap']),
+            int(options['http']),
         )
         if options['file']:
             from localmail.inbox import INBOX
             INBOX.setFile(options['file'])
         imap.setServiceParent(svc)
         smtp.setServiceParent(svc)
+        http.setServiceParent(svc)
         return svc
 
 
