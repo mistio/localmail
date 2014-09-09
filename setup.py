@@ -29,7 +29,7 @@ if sys.version_info[1] < 7:
     test_suite = 'unittest2.collector'
 else:
     test_requirements = []
-    test_suite = 'localmail.tests'
+    test_suite = 'tests'
 
 setup(
     name='localmail',
