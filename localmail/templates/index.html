@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>localmail</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <style>
+      table.headers {
+        display: none;
+      }
+      .summary .from    {
+        display: inline-block;
+        width: 15em;
+        overflow: hidden;
+        margin: 0;
+        padding 0;
+      }
+      #inbox ul {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+      }
+      .msg {
+        display: none;
+      }
+      #messages {
+        border: 2px solid grey;
+      }
+    </style>
+    <script type="text/javascript">
+      $(function() {
+        $('.link').click(function(ev) {
+          console.log('here');
+          $('.link').each(function(i, elem) {
+            $($(elem).attr('href')).hide();
+          });
+          console.log($(this).attr('href'));
+          $($(this).attr('href')).show();
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <section id="inbox" class="col-md-4">
+          <ul>
+            {% for msg in msgs %}
+            <li class="summary">
+              <a href="#{{ msg.uid }}" class="link">
+                <p class="subject">{{ msg.unicode('Subject') }}</p>
+                <p class="from">{{ msg.unicode('From') }}</p>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        <section id="messages" class="col-md-8">
+          {% for msg in msgs %}
+          <article class="msg" id="{{ msg.uid }}">
+            <header class="subject">{{ msg.unicode('Subject') }}</header>
+            <hr/>
+            <p class="headline">
+              <span class="from">From: {{ msg.unicode('From') }}</span>
+              <span class="to">To: {{ msg.unicode('To') }}</span>
+              <span class="date">{{ msg.date }}</span>
+            </p>
+            <p>Show headers</p>
+            <table class="headers">
+              {% for header in msg.msg.keys() %}
+              <tr><td>{{ header }}</td><td>{{ msg.unicode(header) }}</td></tr>
+              {% endfor %}
+            </table>
+            {% for payload in msg.payloads() %}
+            <div class="payload">
+                {{ payload }}
+            </div>
+            {% endfor %}
+          </article>
+          {% endfor %}
+        </section>
+      </div>
+    </div>
+  </body>
+</html>

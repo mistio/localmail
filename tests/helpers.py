@@ -47,11 +47,11 @@ class SMTPClient(ContextHelper):
 
 class IMAPClient(ContextHelper):
     def __init__(self,
-            host='localhost',
-            port=2143,
-            username='x',
-            password='y',
-            uid=False):
+                 host='localhost',
+                 port=2143,
+                 username='x',
+                 password='y',
+                 uid=False):
         self.host = host
         self.port = port
         self.username = username

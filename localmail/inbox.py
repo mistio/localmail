@@ -16,6 +16,7 @@
 
 import random
 import email
+from email.header import decode_header
 import mailbox
 import email.utils
 from itertools import count
@@ -198,6 +199,24 @@ class MessagePart(object):
             return MessagePart(self.msg.get_payload()[part])
         raise TypeError("Not a multipart message")
 
+    def parse_charset(self, default='utf8'):
+        charset = self.msg.get_charset()
+        if charset is not None:
+            return charset
+
+        for chunk in self.msg['Content-type'].split(';'):
+            if 'charset' in chunk:
+                return chunk.split('=')[1]
+        return default
+
+    def unicode(self, header):
+        """Converts a header to unicode"""
+        value = self.msg[header]
+        orig, enc = decode_header(value)[0]
+        if enc is None:
+            enc = self.parse_charset()
+        return orig.decode(enc)
+
 
 class Message(MessagePart):
     implements(imap4.IMessage)
@@ -221,3 +240,11 @@ class Message(MessagePart):
     def __repr__(self):
         h = self.getHeaders(False, 'From', 'To')
         return "<From: %s, To: %s, Uid: %s>" % (h['from'], h['to'], self.uid)
+
+    def payloads(self):
+        for part in self.msg.walk():
+            if part.get_content_maintype() == 'multipart':
+                continue
+            payload = part.get_payload(decode=True)
+            enc = self.parse_charset()
+            yield payload.decode(enc)

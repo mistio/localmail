@@ -1,8 +1,14 @@
 PUBLISHING_DEPENDENCIES=wheel bumpversion twine
+TOX=$(shell which detox || which tox)
+
 
 .PHONY: test
-test:
-	tox
+test: lint
+	$(TOX)
+
+.PHONY: lint
+lint:
+	flake8 localmail tests twisted
 
 .PHONY: publishing-dependencies
 publishing-dependencies:

@@ -18,21 +18,23 @@
 
 __VERSION__ = "0.3.0"
 
-import sys
-
-from setuptools import setup, find_packages
-
+# hide behind main to setup can be imported to find __VERSION__
 if __name__ == '__main__':
+
+    import sys
+    from setuptools import setup, find_packages
 
     DESCRIPTION = """Test SMTP/IMAP server for local integration testing"""
 
-    LONG_DESCRIPTION = open('README.rst').read()
+    LONG_DESCRIPTION = (open('README.rst').read() + '\n\n' +
+                        open('HISTORY.rst').read() + '\n\n' +
+                        open('AUTHORS.rst').read())
 
+    test_requirements = ['tox', 'flake8']
     if sys.version_info[1] < 7:
-        test_requirements = ['unittest2']
+        test_requirements.append('unittest2')
         test_suite = 'unittest2.collector'
     else:
-        test_requirements = []
         test_suite = 'tests'
 
     setup(
@@ -63,7 +65,8 @@ if __name__ == '__main__':
         ],
         include_package_data=True,
         install_requires=[
-            'Twisted >= 11.0.0'
+            'Twisted >= 11.0.0',
+            'jinja2 >= 2.0.0',
         ],
         tests_require=test_requirements,
         test_suite=test_suite,
