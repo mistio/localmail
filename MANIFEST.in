@@ -1,0 +1,6 @@
+include *.tac
+include *.txt
+include *.rst
+include muttrc
+include twisted/plugins/*.py
+

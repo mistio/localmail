@@ -1,15 +1,19 @@
 Localmail
 =========
 
+For local people.
+
 Localmail is SMTP and IMAP server that writes/reads all messages into a single
 in-memory mailbox. It is designed to be used to speed up running test suites on
 systems that send email, such as new account sign up emails with confirmation
 codes. It can also be used to test SMTP/IMAP client code.
 
 Authentication is supported but completely ignored, and all senders and
-receiver email addresses are treated the same. Messages are not persisted, and
-will be lost on shutdown by default. Optionally, you can log messages to disk
-in mbox format.
+receiver email addresses are treated the same. Messages are not persisted by
+default, and will be lost on shutdown.  Optionally, you can log messages to
+disk in mbox format.
+
+It also supports a simple HTTP interface for reading the mail in the inbox.
 
 Limitations
  - no SSL support, but coming
@@ -20,7 +24,7 @@ Install
 =======
 
 ::
-    
+
     pip install localmail
 
 
@@ -46,13 +50,8 @@ You can pass in arguments to control parameters.
 
 ::
 
-   twistd localmail --imap <port> --smtp <port> --file localmail.mbox
+   twistd localmail --imap <port> --smtp <port> --http <port> --file localmail.mbox
 
-Alternatively, run via tac file (but with no paramerisation, currently):
-
-::
-
-    twistd -y localmail.tac
 
 Embedding
 =========
@@ -65,7 +64,10 @@ runner, do the following.
     import threading
     import localmail
 
-    thread = threading.Thread(target=localmail.run, args=(2025, 2143, 'localmail.mbox'))
+    thread = threading.Thread(
+       target=localmail.run,
+       args=(2025, 2143, 8880, 'localmail.mbox')
+    )
     thread.start()
 
     ...
@@ -89,5 +91,9 @@ The test suite is very simple, it uses the python stdlib imaplib and smtplib
 modules as clients, rather than twisted IMAP/SMTP, so it's more integration
 tests rather than unit tests.
 
+To run the full suite, use tox to run on python 2.6, 2.7, and pypy.
+
+To run the suite in the current version, or specific tests, use:
+
 ::
-    python setup.py test [-s localmail.tests.test_localmail.SomeTestCase.test_something]
+    python setup.py test [-s tests.test_localmail.SomeTestCase.test_something]
