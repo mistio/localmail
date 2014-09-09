@@ -5,3 +5,4 @@ localmail.egg-info
 _trial_temp
 build
 .tox
+*.egg
