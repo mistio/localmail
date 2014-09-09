@@ -23,6 +23,9 @@ import localmail
 
 
 class Options(usage.Options):
+    optFlags = [
+        ["random", "r", "Use random ports. Overides any otehr port options"],
+    ]
     optParameters = [
         ["smtp", "s", 2025, "The port number the SMTP server will listen on"],
         ["imap", "i", 2143, "The port number the IMAP server will listen on"],
@@ -40,10 +43,15 @@ class LocalmailServiceMaker(object):
     def makeService(self, options):
         svc = service.MultiService()
         svc.setName("localmail")
+        if options['random']:
+            smtp_port = imap_port = http_port = 0
+        else:
+            smtp_port = int(options['smtp'])
+            imap_port = int(options['imap'])
+            http_port = int(options['http'])
+
         smtp, imap, http = localmail.get_services(
-            int(options['smtp']),
-            int(options['imap']),
-            int(options['http']),
+            smtp_port, imap_port, http_port
         )
         if options['file']:
             from localmail.inbox import INBOX

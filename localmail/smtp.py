@@ -65,6 +65,7 @@ class TestServerESMTPFactory(smtp.SMTPFactory):
         "LOGIN": LOGINCredentials,
         "PLAIN": PLAINCredentials
     }
+    noisy = False
 
     def buildProtocol(self, addr):
         p = smtp.SMTPFactory.buildProtocol(self, addr)

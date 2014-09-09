@@ -53,6 +53,14 @@ You can pass in arguments to control parameters.
    twistd localmail --imap <port> --smtp <port> --http <port> --file localmail.mbox
 
 
+You can have localmail use random ports if you like.
+
+::
+
+   twisted -n localmail --random
+
+
+
 Embedding
 =========
 
@@ -77,6 +85,25 @@ runner, do the following.
 This will run the twisted reactor in a separate thread, and shut it down on
 exit.
 
+If you want to use random ports, you can pass a callback that will have the
+ports the service is listening on.
+
+::
+
+    import threading
+    import localmail
+
+    def report(smtp, imap, http):
+        # do stuff with ports
+
+    thread = threading.Thread(
+       target=localmail.run,
+       args=(0, 0, 0, None, report)
+    )
+    thread.start()
+
+
+
 
 Development
 ===========
@@ -87,13 +114,18 @@ Development
 Testing
 =======
 
-The test suite is very simple, it uses the python stdlib imaplib and smtplib
-modules as clients, rather than twisted IMAP/SMTP, so it's more integration
-tests rather than unit tests.
+The test suite is very simple. It starts localmail in a thread listenin on
+random ports. The tests then run in the mail thread using the python stdlib
+imaplib and smtplib modules as clients, so it's more integration tests rather
+than unit tests.
 
-To run the full suite, use tox to run on python 2.6, 2.7, and pypy.
+I probably should add some proper unit tests and use twisteds SMTP/IMAP
+clients, but trial scares me a little.
 
-To run the suite in the current version, or specific tests, use:
+To run the full suite, use tox to run on python 2.6, 2.7, and pypy. Works in
+parallel with detox too, thanks to using random ports.
+
+To run the suite manually, or with specific tests, use:
 
 ::
     python setup.py test [-s tests.test_localmail.SomeTestCase.test_something]

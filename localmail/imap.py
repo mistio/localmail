@@ -15,7 +15,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from twisted.internet import protocol
 from twisted.mail import imap4
-from twisted.python import log
 from zope.interface import implements
 
 from inbox import INBOX
@@ -68,6 +67,7 @@ class IMAPServerProtocol(imap4.IMAP4Server):
 class TestServerIMAPFactory(protocol.Factory):
     protocol = IMAPServerProtocol
     portal = None  # placeholder
+    noisy = False
 
     def buildProtocol(self, address):
         p = self.protocol()

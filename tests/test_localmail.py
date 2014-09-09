@@ -24,18 +24,26 @@ thread = None
 HOST = 'localhost'
 SMTP_PORT = 2025
 IMAP_PORT = 2143
+HTTP_PORT = 8880
 
 if 'LOCALMAIL' in os.environ:
+    # use external server
     LOCALMAIL = os.getenv('LOCALMAIL')
     if ':' in LOCALMAIL:
         HOST, ports = LOCALMAIL.split(':')
-        SMTP_PORT, IMAP_PORT = ports.split(',')
-        print SMTP_PORT, IMAP_PORT
+        SMTP_PORT, IMAP_PORT, HTTP_PORT = ports.split(',')
 else:
+    # use random ports
+    def report(smtp, imap, http):
+        global SMTP_PORT, IMAP_PORT, HTTP_PORT
+        SMTP_PORT = smtp
+        IMAP_PORT = imap
+        HTTP_PORT = http
+
     def setUpModule():
         global thread
         thread = threading.Thread(
-            target=localmail.run, args=(SMTP_PORT, IMAP_PORT))
+            target=localmail.run, args=(0, 0, 0, None, report))
         thread.start()
         time.sleep(1)
 
@@ -157,10 +165,14 @@ class SequentialIdTestCase(BaseLocalmailTestcase):
         self.smtp.send(self._testmsg(1))
         self.smtp.send(self._testmsg(2))
         self.imap.store(1, '(\Deleted)')
-        self.assertEqual(self.imap.search('(DELETED)'),
-                [self.imap.msgid(1)])
-        self.assertEqual(self.imap.search('(NOT DELETED)'),
-                [self.imap.msgid(2)])
+        self.assertEqual(
+            self.imap.search('(DELETED)'),
+            [self.imap.msgid(1)]
+        )
+        self.assertEqual(
+            self.imap.search('(NOT DELETED)'),
+            [self.imap.msgid(2)]
+        )
 
 
 class UidTestCase(SequentialIdTestCase):

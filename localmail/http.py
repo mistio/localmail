@@ -92,7 +92,7 @@ summary_template = u"""\
 
 
 class TestServerHTTPFactory(Site):
-    pass
+    noisy = False
 
 
 class Index(Resource):
