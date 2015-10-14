@@ -18,10 +18,12 @@ publishing-dependencies:
 bump: publishing-dependencies
 	$(eval OLD=$(shell python -c "import setup; print setup.__VERSION__"))
 	bumpversion minor
+	$(MAKE) __finish_bump OLD=$(OLD)
+
+__finish_bump:
 	$(eval NEW=$(shell python -c "import setup; print setup.__VERSION__"))
 	bzr commit -m "bump version: $(OLD) to $(NEW)"
 	bzr tag "v$(NEW)"
-	bzr push
 
 .PHONY: update
 update:
