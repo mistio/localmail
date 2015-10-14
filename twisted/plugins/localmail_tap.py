@@ -24,7 +24,7 @@ import localmail
 
 class Options(usage.Options):
     optFlags = [
-        ["random", "r", "Use random ports. Overides any otehr port options"],
+        ["random", "r", "Use random ports. Overides any other port options"],
     ]
     optParameters = [
         ["smtp", "s", 2025, "The port number the SMTP server will listen on"],
