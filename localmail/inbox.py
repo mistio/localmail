@@ -25,7 +25,6 @@ from cStringIO import StringIO
 from zope.interface import implements
 
 from twisted.mail import imap4
-from twisted.internet import reactor
 from twisted.python import log
 
 UID_GENERATOR = count()
@@ -59,17 +58,16 @@ class MemoryIMAPMailbox(object):
         if self.mbox is not None:
             self.mbox.add(msg.msg)
         self.msgs.append(msg)
+        self.flush()
 
     def setFile(self, path):
         log.msg("creating mbox file %s" % path)
         self.mbox = mailbox.mbox(path)
-        reactor.callLater(5, self.flush)
 
     def flush(self):
         if self.mbox is not None:
             log.msg("flushing mailbox")
             self.mbox.flush()
-            reactor.callLater(5, self.flush)
 
     def __init__(self):
         # can't use OrderedDict as need to support 2.6 :(
@@ -156,6 +154,7 @@ class MemoryIMAPMailbox(object):
                 # use less efficient remove() because the indexes are changing
                 self.msgs.remove(msg)
                 removed.append(msg.uid)
+        self.flush()
         return removed
 
     def destroy(self):
