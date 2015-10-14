@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-__VERSION__ = "0.4.0"
+__VERSION__ = "0.4.1"
 
 # hide behind main to setup can be imported to find __VERSION__
 if __name__ == '__main__':
