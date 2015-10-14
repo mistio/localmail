@@ -3,12 +3,12 @@
 History
 =======
 
-0.4 (2014-0-??)
+0.4 (2015-08-14)
 ----------------
 
  * support for using random port numbers
  * available as a universal wheel, general packaging improvements
- * Simple HTTP interface for browsing mail
+ * Simple HTTP interface for browsing mail (requires jinja2)
  * Support writing to mbox file
  * Fixed date to work with mutt, example muttrc included in package.
 
