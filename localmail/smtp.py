@@ -33,6 +33,7 @@ class MemoryMessage(object):
 
     def lineReceived(self, line):
         self.file.write(line + '\n')
+        print(line)
 
     def eomReceived(self):
         self.file.seek(0)
