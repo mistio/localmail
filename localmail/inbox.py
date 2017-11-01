@@ -203,9 +203,10 @@ class MessagePart(object):
         if charset is not None:
             return charset
 
-        for chunk in self.msg['Content-type'].split(';'):
-            if 'charset' in chunk:
-                return chunk.split('=')[1]
+        if self.msg.get('Content-type'):
+            for chunk in self.msg['Content-type'].split(';'):
+                if 'charset' in chunk:
+                    return chunk.split('=')[1]
         return default
 
     def unicode(self, header):
