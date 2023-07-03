@@ -37,7 +37,7 @@ Running localmail
 
 .. code-block:: bash
 
-    twistd localmail
+    twistd -y localmail mail
 
 This will run localmail in the background, SMTP on port 2025 and IMAP on 2143,
 It will log to a file ./twistd.log. Use the -n option if you want to run in
@@ -45,14 +45,14 @@ the foreground, like so.
 
 .. code-block:: bash
 
-    twistd -n localmail
+    twistd -n -y localmail mail
 
 
 You can pass in arguments to control parameters.
 
 .. code-block:: bash
 
-   twistd localmail --imap <port> --smtp <port> --http <port> --file localmail.mbox
+   twistd  localmail --imap <port> --smtp <port> --http <port> --file localmail.mbox
 
 
 You can have localmail use random ports if you like. The port numbers will be logged.
