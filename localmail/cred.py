@@ -13,7 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-from zope.interface import implements
+try:
+    # old
+    from zope.interface import implements
+except:
+    # 6.0+
+    from zope.interface import classImplements as implements
+    
 from twisted.internet import defer
 from twisted.cred import portal, checkers, credentials
 from twisted.mail import smtp, imap4
